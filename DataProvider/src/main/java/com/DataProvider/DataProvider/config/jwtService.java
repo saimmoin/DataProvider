@@ -1,11 +1,14 @@
 package com.DataProvider.DataProvider.config;
 
 
+import com.DataProvider.DataProvider.Entity.Employee;
+import com.DataProvider.DataProvider.Repository.EmployeeRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +23,8 @@ import java.util.function.Function;
 @Component
 public class jwtService {
     UserDetails userDetails;
+    @Autowired
+    EmployeeRepository employeeRepository;
     private static final String SECURITY_KEY ="emTTPHMuoK0eBWQpIR9sow9NnWq8wWPUt3nBP0+bDT1GVUf39VxJOXcmDsMY6/F8QsjuNUW+9+7heTBv7pK/4m4Hq1hB/AG1LEUnc4jP85RQsH83CUlBmiFscFcljkSEgkeMSD7AxSu1WBq0LE97JMSAVEVBZ0MM/lAdHn+rU5RKwt4SghMGZt7Mlxz0EYUqEGaKiHyKiOKIps1WEiTCwq+Q3mfwPl9VrjdYr5mA28UvPJbvEAlMK56wu3oAlC4FVMYRTIRr4eIf5MCp7tE9dEmR+iOrdilawMhU+87Lljh4rGpOA627AdUim1oLm/ki6WwBlj5Vu6l4gGKZhSITFP40khnIXlVPnrCm9P2bfYw=" ;
     public String 	extractUserName(String token){
         return extractClaims(token,Claims::getSubject);
@@ -42,10 +47,18 @@ public class jwtService {
         return claimsTFunction.apply(claims);
     }
     public String generateToken(Map<String, Objects>extractClaims, UserDetails userDetails ){
+        Map<String,Object> claims=new HashMap<>();
+      Employee e= employeeRepository.findAllByEmailAddress(userDetails.getUsername());
+        claims.put("Department Name",e.getDepartment().getName());
+        claims.put("Employee Salary",e.getSalary());
+
+        claims.put("Employee Roles",e.getRoles());
+
         return Jwts.builder()
                 .setClaims(extractClaims)
                 .setExpiration(new Date(System.currentTimeMillis() *1000+60))
                 .setSubject(userDetails.getUsername())
+                .addClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
     }

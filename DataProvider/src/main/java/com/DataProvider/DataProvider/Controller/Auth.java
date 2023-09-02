@@ -17,12 +17,12 @@ public class Auth {
     AuthService authService;
 
     @PostMapping("/register")
-    public loginReSPONSEDTO register(@RequestBody RegisterRequestDTO dto){
+    public ResponseDTO register(@RequestBody RegisterRequestDTO dto){
 
         return authService.register(dto);
     }
     @PostMapping("/login")
-    public loginReSPONSEDTO login(@RequestBody loginRequestDTO dto){
+    public ResponseDTO login(@RequestBody loginRequestDTO dto){
 
         return authService.login(dto);
     }
