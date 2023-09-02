@@ -43,11 +43,12 @@ public class AuthServiceImpl implements AuthService {
         try{
 
          Employee e= employeeRepository.findAllByEmailAddress(dto.getUsername());
-        if(Objects.nonNull(e))
+         boolean passMatch = passwordEncoder.matches(dto.getPassword(), e.getPassword());
+        if(Objects.nonNull(e) && passMatch)
         {
             String token=   generateToken(e);
             loginReSPONSEDTO.setToken(token);
-         return loginReSPONSEDTO;
+            return loginReSPONSEDTO;
         }
            return loginReSPONSEDTO;
         }
