@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -52,12 +53,29 @@ public class AuthServiceImpl implements AuthService {
             loginReSPONSEDTO loginReSPONSEDTO =new loginReSPONSEDTO();
          String token=   generateToken(e);
             loginReSPONSEDTO.setToken(token);
-            ResponseDTO res= this.createToken(e);
-            if(res.getStatusCode().equals(HttpStatus.OK))
-            {
-                RefreshToken refreshToken= (RefreshToken) res.getBody();
-                loginReSPONSEDTO.setRefreshToken(refreshToken.getToken());
-            }
+            //generating refresh token
+          RefreshToken rt=  refreshTokenRepo.findByUser(e);
+          if(Objects.nonNull(rt) )
+
+          {
+              ResponseDTO res =new ResponseDTO();
+              if( Objects.nonNull(validateRefreshToken(rt.getToken())))
+              {
+                  RefreshToken t= validateRefreshToken(rt.getToken());
+                   res= updateRefreshTokenExpiry(t);
+              }
+              else {
+                  res = this.createToken(e);
+
+              }
+              if(res.getStatusCode().equals(HttpStatus.OK))
+              {
+                  RefreshToken refreshToken= (RefreshToken) res.getBody();
+                  loginReSPONSEDTO.setRefreshToken(refreshToken.getToken());
+              }
+
+          }
+
            responseDTO.setBody(loginReSPONSEDTO);
            responseDTO.setMessage("Login Sucessfully");
            responseDTO.setStatusCode(HttpStatus.OK);
@@ -77,6 +95,23 @@ public class AuthServiceImpl implements AuthService {
         }
 
     }
+
+    private ResponseDTO updateRefreshTokenExpiry(RefreshToken refreshToken) {
+        Date currentDate = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(Calendar.MINUTE, 6);
+        Date updatedDate = calendar.getTime();
+        refreshToken.setTokenExpiry(updatedDate);
+        refreshToken.setStatus(true);
+        refreshToken=  refreshTokenRepo.save(refreshToken);
+        ResponseDTO responseDTO=new ResponseDTO();
+        responseDTO.setStatusCode(HttpStatus.OK);
+        responseDTO.setBody(refreshToken);
+        return  responseDTO;
+
+    }
+
     @Override
     public String generateToken(Employee e)
     {
@@ -150,7 +185,18 @@ public class AuthServiceImpl implements AuthService {
             RefreshToken refreshToken = new RefreshToken();
             refreshToken.setToken(UUID.randomUUID().toString());
             refreshToken.setUser(employee);
-            refreshToken.setTokenExpiry(new Date(System.currentTimeMillis() *300000));
+            Date currentDate = new Date();
+
+            // Create a Calendar instance and set it to the current date and time
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(currentDate);
+
+            // Add 6 minutes to the current time
+            calendar.add(Calendar.MINUTE, 6);
+
+            // Get the updated date and time
+            Date updatedDate = calendar.getTime();
+            refreshToken.setTokenExpiry(updatedDate);
             refreshToken.setStatus(true);
             refreshToken=  refreshTokenRepo.save(refreshToken);
             responseDTO.setMessage("Refresh Token generated successfully!");
@@ -168,31 +214,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Boolean validateRefreshToken(String token) {
+    public RefreshToken validateRefreshToken(String token) {
         try{
             RefreshToken refreshToken = refreshTokenRepo.findByToken(token);
             if(Objects.nonNull(refreshToken)){
                 if(  refreshToken.getTokenExpiry().after(new Date())){
-                    return true;
+
+                    return refreshToken;
                 }
                 refreshTokenRepo.delete(refreshToken);
-                return false;
+                return null;
             }
-            return false;
+            return null;
         }
         catch (Exception e){
             System.out.println(e.getMessage());
-            return false;
+            return null;
         }
 
     }
 
     @Override
     public ResponseDTO generateRefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        Boolean validate = validateRefreshToken(refreshTokenRequestDTO.getRefreshToken());
-        if(validate == true) {
+        RefreshToken refreshToken = validateRefreshToken(refreshTokenRequestDTO.getRefreshToken());
+        if(Objects.nonNull(refreshToken)) {
             Employee employee=    employeeRepository.findAllByEmailAddress(refreshTokenRequestDTO.getUsername());
-            RefreshToken refreshToken = refreshTokenRepo.findByToken(refreshTokenRequestDTO.getRefreshToken());
             refreshToken.setTokenExpiry(new Date(System.currentTimeMillis() *300000));
             refreshToken.setStatus(true);
             refreshToken=  refreshTokenRepo.save(refreshToken);
