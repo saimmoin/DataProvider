@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class Auth {
     @Autowired
     AuthService authService;
+//    @Autowired
+//    RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
     public ResponseDTO register(@RequestBody RegisterRequestDTO dto){
@@ -25,5 +27,10 @@ public class Auth {
     public ResponseDTO login(@RequestBody loginRequestDTO dto){
 
         return authService.login(dto);
+    }
+    @PostMapping("/refresh")
+    public ResponseDTO refresh(@RequestBody RefreshTokenRequestDTO dto){
+
+        return authService.generateRefreshToken(dto);
     }
 }
