@@ -9,9 +9,13 @@ import com.DataProvider.DataProvider.Repository.EmployeeRepository;
 import com.DataProvider.DataProvider.Repository.RefreshTokenRepo;
 import com.DataProvider.DataProvider.Service.AuthService;
 import com.DataProvider.DataProvider.config.jwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -30,6 +34,8 @@ public class AuthServiceImpl implements AuthService {
     private jwtService jwtService;
     @Autowired
     RefreshTokenRepo refreshTokenRepo;
+
+   private  SecurityContextLogoutHandler securityContextLogoutHandler;
 
 
 
@@ -253,6 +259,15 @@ public class AuthServiceImpl implements AuthService {
             return responseDTO;
 
         }
+        return null;
+    }
+
+    @Override
+  public  ResponseDTO logout(Authentication authentication,
+                       HttpServletRequest httpServletRequest,
+                       HttpServletResponse httpServletResponse)
+    {
+        securityContextLogoutHandler.logout(httpServletRequest,httpServletResponse,authentication);
         return null;
     }
 

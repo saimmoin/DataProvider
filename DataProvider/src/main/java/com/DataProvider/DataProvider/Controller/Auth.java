@@ -3,7 +3,10 @@ package com.DataProvider.DataProvider.Controller;
 
 import com.DataProvider.DataProvider.DTO.*;
 import com.DataProvider.DataProvider.Service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,5 +35,13 @@ public class Auth {
     public ResponseDTO refresh(@RequestBody RefreshTokenRequestDTO dto){
 
         return authService.generateRefreshToken(dto);
+    }
+
+    @PostMapping("/logouts")
+    public ResponseDTO logOut(@RequestBody Authentication authentication,
+                              HttpServletRequest httpServletRequest,
+                              HttpServletResponse httpServletResponse){
+
+        return authService.logout(authentication,httpServletRequest,httpServletResponse);
     }
 }
