@@ -16,7 +16,5 @@ public interface AuthService {
     ResponseDTO createToken(Employee userDetails);
     RefreshToken validateRefreshToken(String token);
     ResponseDTO generateRefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO);
-    ResponseDTO logout(Authentication authentication,
-                       HttpServletRequest httpServletRequest,
-                       HttpServletResponse httpServletResponse);
+    ResponseDTO logout(Authentication authentication, HttpServletRequest request, HttpServletResponse response);
 }

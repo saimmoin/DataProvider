@@ -20,7 +20,11 @@ public class EmployeeController {
 
     @GetMapping("getEmployee")
     public List<EmployeeResponseDTO> getall(){
-        return employeeService.getAll();
+        List<EmployeeResponseDTO> list = new ArrayList<>();
+        list= employeeService.getAll();
+        System.out.println("Employee DATA--->"+list.toString());
+
+        return list;
     }
 
     @PostMapping("AddEmployee")

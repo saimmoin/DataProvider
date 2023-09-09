@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     RefreshTokenRepo refreshTokenRepo;
 
-   private  SecurityContextLogoutHandler securityContextLogoutHandler;
+    private final SecurityContextLogoutHandler securityContextLogoutHandler =new SecurityContextLogoutHandler();
 
 
 
@@ -268,7 +268,11 @@ public class AuthServiceImpl implements AuthService {
                        HttpServletResponse httpServletResponse)
     {
         securityContextLogoutHandler.logout(httpServletRequest,httpServletResponse,authentication);
-        return null;
+        ResponseDTO responseDTO = new ResponseDTO();
+
+        responseDTO.setMessage("LogOut Successfully");
+        responseDTO.setStatusCode(HttpStatus.OK);
+        return responseDTO;
     }
 
 

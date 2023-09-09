@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/auth")
 
@@ -37,11 +39,9 @@ public class Auth {
         return authService.generateRefreshToken(dto);
     }
 
-    @PostMapping("/logouts")
-    public ResponseDTO logOut(@RequestBody Authentication authentication,
-                              HttpServletRequest httpServletRequest,
-                              HttpServletResponse httpServletResponse){
-
-        return authService.logout(authentication,httpServletRequest,httpServletResponse);
+    @PostMapping("/logout")
+    public ResponseDTO logout(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        System.out.println("hello");
+        return   authService.logout(authentication,request,response);
     }
 }
