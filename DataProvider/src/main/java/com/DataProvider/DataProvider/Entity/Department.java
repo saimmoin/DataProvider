@@ -2,6 +2,7 @@ package com.DataProvider.DataProvider.Entity;
 
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
 @Entity
 @Table(name = "department")
 
-public class Department {
+public class Department implements Serializable {
     @Id
     @GeneratedValue
     @Column(name = "id")

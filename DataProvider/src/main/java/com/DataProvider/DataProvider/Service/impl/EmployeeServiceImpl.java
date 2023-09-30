@@ -8,14 +8,13 @@ import com.DataProvider.DataProvider.Entity.Employee;
 import com.DataProvider.DataProvider.Entity.Role;
 import com.DataProvider.DataProvider.Repository.DepartmentRepository;
 import com.DataProvider.DataProvider.Repository.EmployeeRepository;
+import com.DataProvider.DataProvider.Repository.RoleRepository;
 import com.DataProvider.DataProvider.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -23,17 +22,29 @@ public class EmployeeServiceImpl implements EmployeeService {
     EmployeeRepository employeeRepository;
     @Autowired
     DepartmentRepository departmentRepository;
+    @Autowired
+    RedisTemplate <Integer,Employee> redisTemplate;
+    @Autowired
+    RoleRepository roleRepository;
+    private static Integer Key=7246;
     List<Employee> employeeList= new ArrayList<>();
     @Override
     public List<EmployeeResponseDTO> getAll() {
-        List<EmployeeResponseDTO> list=new ArrayList<>();
-        List<Employee> emp=employeeRepository.getEmployeesByEnabledTrue();
-        emp.stream().forEach(e->{
-            EmployeeResponseDTO employeeResponseDTO=new EmployeeResponseDTO(e);
-            list.add(employeeResponseDTO);
-        });
+        try {
+            List<EmployeeResponseDTO> list=new ArrayList<>();
 
-        return list;
+          List<Object> emp =  redisTemplate.opsForHash().values(Key);
+          List<Object>emp1= (List<Object>) emp.get(0);
+
+            emp1.stream().forEach(e->{
+                EmployeeResponseDTO employeeResponseDTO=new EmployeeResponseDTO((Employee) e);
+                list.add(employeeResponseDTO);
+            });
+            return list;
+        } catch(Exception err) {
+            System.out.println(err);
+            return null;
+        }
     }
 
     @Override
@@ -47,7 +58,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 {
                     employee.setId(dto.getId());
                 }
-                List<Role> roleList=new ArrayList<>();
+            List<Role> roleList =  roleRepository.findAllByIdIn(dto.getRoles());
                 if(dto.getRoles().size()>0)
                 {
                     dto.getRoles().stream().forEach(
@@ -64,12 +75,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.setName(dto.getName());
                 employee.setEnabled(dto.isEnabled());
                 employee.setSalary(dto.getSalary());
-                Department dept=new Department();
-                dept.setId(dto.getDepartment());
+            Department dept=new Department();
+            Optional<Department>   optionalDepartment=  departmentRepository.findById(dto.getDepartment());
+           dept =  optionalDepartment.get();
+
                 employee.setDepartment(dept);
-             Employee employee1=   employeeRepository.save(employee);
+            employee=   employeeRepository.save(employee);
                 baseDTO.responseMessage="Employee Saved Sucessfully";
-                return baseDTO;
+//                redisTemplate.opsForValue().set(Key, employee.getId(), employee);
+                redisTemplate.opsForHash().put(Key, employee.getId(), employee);
+            return baseDTO;
 
         }
         catch (Exception e){
