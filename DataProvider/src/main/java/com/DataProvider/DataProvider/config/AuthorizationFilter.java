@@ -1,11 +1,13 @@
 package com.DataProvider.DataProvider.config;
 
+import com.DataProvider.DataProvider.Scheduling.CroneJob;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 import java.util.logging.Filter;
 import java.util.logging.LogRecord;
@@ -58,4 +65,15 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request,response);
 
     }
+//    @Scheduled(initialDelay = 1000, fixedRate = 10000)
+    @Scheduled(cron = "0 */10 * ? * *")
+    public void runEvey10Seconds() {
+        Calendar cal = Calendar.getInstance();
+        Date date=cal.getTime();
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        String formattedDate=dateFormat.format(date);
+        System.out.println("Current time of the day using Calendar - 24 hour format: "+ formattedDate);
+        System.out.println("Rayyan pagal hai.........%$$@^$^&@#& ");
+    }
+
 }
