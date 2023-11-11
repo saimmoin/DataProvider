@@ -2,6 +2,8 @@ package com.DataProvider.DataProvider.Entity;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "role")
 public class Role {
@@ -53,4 +55,34 @@ public class Role {
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
+
+    public Set<User> getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(Set<User> userRole) {
+        this.userRole = userRole;
+    }
+
+    public Set<Permission> getRolePermission() {
+        return rolePermission;
+    }
+
+    public void setRolePermission(Set<Permission> rolePermission) {
+        this.rolePermission = rolePermission;
+    }
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> userRole;
+
+    @ManyToMany
+    @JoinTable(
+            name = "role_permission",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    Set<Permission> rolePermission;
 }

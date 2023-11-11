@@ -1,12 +1,11 @@
 package com.DataProvider.DataProvider.Service.impl;
 
 import com.DataProvider.DataProvider.DTO.*;
-import com.DataProvider.DataProvider.Entity.Department;
-import com.DataProvider.DataProvider.Entity.Employee;
 import com.DataProvider.DataProvider.Entity.RefreshToken;
 import com.DataProvider.DataProvider.Entity.Role;
-import com.DataProvider.DataProvider.Repository.EmployeeRepository;
+import com.DataProvider.DataProvider.Entity.User;
 import com.DataProvider.DataProvider.Repository.RefreshTokenRepo;
+import com.DataProvider.DataProvider.Repository.UserRepository;
 import com.DataProvider.DataProvider.Service.AuthService;
 import com.DataProvider.DataProvider.config.jwtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -28,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
 
-    private EmployeeRepository employeeRepository;
+    private UserRepository userRepository;
     @Autowired
 
     private jwtService jwtService;
@@ -52,15 +50,15 @@ public class AuthServiceImpl implements AuthService {
                 return responseDTO;
             }
 
-         Employee e= employeeRepository.findAllByEmailAddress(dto.getUsername());
-         boolean passMatch = passwordEncoder.matches(dto.getPassword(), e.getPassword());
-        if(Objects.nonNull(e) && passMatch)
+         User u= userRepository.findAllByEmail(dto.getUsername());
+         boolean passMatch = passwordEncoder.matches(dto.getPassword(), u.getPassword());
+        if(Objects.nonNull(u) && passMatch)
         {
             loginReSPONSEDTO loginReSPONSEDTO =new loginReSPONSEDTO();
-         String token=   generateToken(e);
+         String token=   generateToken(u);
             loginReSPONSEDTO.setToken(token);
             //generating refresh token
-          RefreshToken rt=  refreshTokenRepo.findByUser(e);
+          RefreshToken rt=  refreshTokenRepo.findByUser(u);
           if(Objects.nonNull(rt) )
 
           {
@@ -71,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
                    res= updateRefreshTokenExpiry(t);
               }
               else {
-                  res = this.createToken(e);
+                  res = this.createToken(u);
 
               }
               if(res.getStatusCode().equals(HttpStatus.OK))
@@ -119,9 +117,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String generateToken(Employee e)
+    public String generateToken(User user)
     {
-        String token=   jwtService.generateToken(e);
+        String token=   jwtService.generateToken(user);
 
         return token;
     }
@@ -131,8 +129,6 @@ public class AuthServiceImpl implements AuthService {
         try{
             ResponseDTO responseDTO = new ResponseDTO();
 
-            Department department=new Department();
-            department.setId(dto.getDepartment());
             if(dto.getRoles().size() > 0) {
                 List<Role> roleList = new ArrayList<>();
                 dto.getRoles().forEach(r -> {
@@ -142,21 +138,20 @@ public class AuthServiceImpl implements AuthService {
                     roleList.add(role);
                 });
                 String password = passwordEncoder.encode(dto.getPassword());
-                Employee employee = new Employee();
-                employee.setRoles(roleList);
-                employee.setId(dto.getId());
-                employee.setName(dto.getName());
-                employee.setEnabled(true);
-                employee.setDepartment(department);
-                employee.setSalary(dto.getSalary());
-                employee.setPassword(password);
-                employee.setEmailAddress(dto.getEmailAddress());
+                User user = new User();
+                user.setUserRole((Set<Role>) roleList);
+                user.setId(dto.getId());
+                user.setName(dto.getName());
+                user.setEnabled(true);
 
-                employee =  employeeRepository.save(employee);
-                if(Objects.nonNull(employee))
+                user.setPassword(password);
+                user.setEmail(dto.getEmailAddress());
+
+                user =  userRepository.save(user);
+                if(Objects.nonNull(user))
                 {
                     loginReSPONSEDTO loginReSPONSEDTO = new loginReSPONSEDTO();
-                    String token=   generateToken(employee);
+                    String token=   generateToken(user);
                     loginReSPONSEDTO.setToken(token);
                     responseDTO.setBody(loginReSPONSEDTO);
                     responseDTO.setMessage("Registered Successfully!");
@@ -185,12 +180,12 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public ResponseDTO createToken(Employee employee) {
+    public ResponseDTO createToken(User user) {
         try{
             ResponseDTO responseDTO = new ResponseDTO();
             RefreshToken refreshToken = new RefreshToken();
             refreshToken.setToken(UUID.randomUUID().toString());
-            refreshToken.setUser(employee);
+            refreshToken.setUser(user);
             Date currentDate = new Date();
 
             // Create a Calendar instance and set it to the current date and time
@@ -244,11 +239,11 @@ public class AuthServiceImpl implements AuthService {
     public ResponseDTO generateRefreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
         RefreshToken refreshToken = validateRefreshToken(refreshTokenRequestDTO.getRefreshToken());
         if(Objects.nonNull(refreshToken)) {
-            Employee employee=    employeeRepository.findAllByEmailAddress(refreshTokenRequestDTO.getUsername());
+            User user=    userRepository.findAllByEmail(refreshTokenRequestDTO.getUsername());
             refreshToken.setTokenExpiry(new Date(System.currentTimeMillis() *300000));
             refreshToken.setStatus(true);
             refreshToken=  refreshTokenRepo.save(refreshToken);
-            String token= this.generateToken(employee);
+            String token= this.generateToken(user);
             loginReSPONSEDTO loginReSPONSEDTO =new loginReSPONSEDTO();
             loginReSPONSEDTO.setRefreshToken(refreshToken.getToken());
             loginReSPONSEDTO.setToken(token);

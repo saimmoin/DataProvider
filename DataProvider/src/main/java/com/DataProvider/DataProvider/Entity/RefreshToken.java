@@ -21,7 +21,7 @@ public class RefreshToken {
     private Date tokenExpiry;
     @OneToOne(fetch = FetchType.EAGER) // EAGER loading brings all the data togethere(as soon as the code is executed)
     @JoinColumn()
-    private Employee user;
+    private User user;
     private Boolean status; // boolean(throws exception when null) Boolean(does not throw exception)
 
 
