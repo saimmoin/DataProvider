@@ -24,9 +24,7 @@ public class schoolClass {
     private User classTeacher;
 
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "student_in_class")
-    private List<User> studentInClass;
+
 
     public schoolClass(int id, String name, Section sectionId, int no_of_students, User classTeacher) {
         this.id = id;
@@ -47,13 +45,7 @@ public class schoolClass {
         this.id = id;
     }
 
-    public List<User> getStudentInClass() {
-        return studentInClass;
-    }
 
-    public void setStudentInClass(List<User> studentInClass) {
-        this.studentInClass = studentInClass;
-    }
 
     public Set<Subject> getClassSubject() {
         return classSubject;
